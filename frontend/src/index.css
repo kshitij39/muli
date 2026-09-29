@@ -1,0 +1,103 @@
+@import 'tailwindcss';
+
+@layer base {
+  body {
+    background: #fafaf9;
+    color: #1c1917;
+    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+  }
+
+  a {
+    color: #1d4ed8;
+    text-decoration: underline;
+    text-decoration-color: rgb(29 78 216 / 0.3);
+    text-underline-offset: 3px;
+  }
+
+  a:hover {
+    text-decoration-color: currentColor;
+  }
+}
+
+@layer components {
+  .panel {
+    border: 1px solid #e7e5e4;
+    border-radius: 4px;
+    background: #fff;
+  }
+
+  .panel-head {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1rem;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 3rem;
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid #e7e5e4;
+  }
+
+  .panel-head h2 {
+    font-weight: 600;
+  }
+
+  .logo {
+    padding: 0.125rem 0.5rem;
+    border-radius: 3px;
+    background: #ffd23f;
+    color: #1c1917;
+    font-size: 1.125rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    text-decoration: none;
+  }
+
+  .btn {
+    display: inline-flex;
+    gap: 0.5rem;
+    align-items: center;
+    justify-content: center;
+    height: 2.5rem;
+    padding: 0 1rem;
+    border: 1px solid #d6d3d1;
+    border-radius: 4px;
+    background: #fff;
+    color: #1c1917;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+
+  .btn:hover {
+    border-color: #a8a29e;
+    background: #f5f5f4;
+  }
+
+  .btn-primary {
+    border-color: #d9a900;
+    background: #ffd23f;
+  }
+
+  .btn-primary:hover {
+    border-color: #b98f00;
+    background: #f5c400;
+  }
+
+  .input {
+    height: 2.5rem;
+    max-width: 100%;
+    padding: 0 0.75rem;
+    border: 1px solid #d6d3d1;
+    border-radius: 4px;
+    background: #fff;
+  }
+
+  .input:focus {
+    border-color: #1c1917;
+    outline: none;
+    box-shadow: 0 0 0 3px rgb(255 210 63 / 0.6);
+  }
+}
