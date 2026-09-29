@@ -28,6 +28,32 @@
     background: #fff;
   }
 
+  .panel-head {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1rem;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 3rem;
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid #e7e5e4;
+  }
+
+  .panel-head h2 {
+    font-weight: 600;
+  }
+
+  .logo {
+    padding: 0.125rem 0.5rem;
+    border-radius: 3px;
+    background: #ffd23f;
+    color: #1c1917;
+    font-size: 1.125rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    text-decoration: none;
+  }
+
   .btn {
     display: inline-flex;
     gap: 0.5rem;
