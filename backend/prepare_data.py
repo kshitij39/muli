@@ -30,6 +30,17 @@ LAYERS = [
 ]
 SCHOOLS = {"municipal", "aided", "unaided"}
 
+SHORT = {
+    "MUN": "Municipal", "MUN.": "Municipal", "MNP": "Municipal", "MUNICIPAL": "Municipal", "MUNCIPAL": "Municipal",
+    "UP": "Upper Primary", "U.P.": "Upper Primary", "U.P": "Upper Primary", "LP": "Lower Primary", "L.P.": "Lower Primary",
+    "MAR": "Marathi", "MAR.": "Marathi", "MR": "Marathi", "URD": "Urdu", "ENG": "English", "GUJ": "Gujarati",
+    "GUJRATI": "Gujarati", "HIN": "Hindi", "HIND": "Hindi", "TML": "Tamil", "KAN": "Kannada", "KANNAD": "Kannada",
+    "NGR": "Nagar", "RD": "Road", "RD.": "Road", "MRG": "Marg", "SCH": "School", "SCH.": "School", "SEC": "Secondary",
+    "SEC.": "Secondary", "MPS": "Mumbai Public School", "NO.": "No.", "NO": "No.", "MG": "MG", "PRI": "Primary",
+    "SCHOOL": "School", "BMC": "BMC", "STASTION": "Station",
+}
+TYPOGRAPHIC = str.maketrans({"\u2013": "-", "\u2014": "-", "\u2018": "'", "\u2019": "'", "\u201c": '"', "\u201d": '"', "\u20ac": " "})
+
 
 def placemarks(path):
     return ET.parse(RAW / path).getroot().iter(KML + "Placemark")
@@ -58,7 +69,39 @@ def first(data, keys):
 
 
 def plain(text):
-    return re.sub(r"\s+", " ", html.unescape(text or "")).strip()
+    text = html.unescape(text or "").translate(TYPOGRAPHIC)
+    text = re.sub(r"\s+", " ", text).strip(" ,.-")
+    if text.isupper():
+        text = text.title()
+    return re.sub(r"\bH\.\s?P\b\.?|\bHp\b\.?|\bHP\b\.?", "Health Post", text)
+
+
+def school_name(name):
+    tokens = []
+    for token in re.sub(r"\s+", " ", name.upper()).replace("(", " ").replace(")", " ").split():
+        tokens += [token] if token in SHORT else [part for part in re.split(r"(?<=\.)(?=[A-Z0-9])", token) if part]
+    words = []
+    for i, token in enumerate(tokens):
+        if token == "X" and i + 1 < len(tokens) and tokens[i + 1] in ("RD", "RD.", "ROAD"):
+            words.append("Cross")
+            continue
+        word = SHORT.get(token, token.title())
+        if token in SHORT and words and words[-1].endswith(word):
+            continue
+        words.append(word)
+    return " ".join(words)
+
+
+def place_name(key, name):
+    if key in SCHOOLS:
+        return school_name(name)
+    if key == "toilet":
+        return "Public toilet"
+    if key == "ward_office":
+        return f"{name} ward office"
+    if key == "parking":
+        return f"Parking {plain(name)}".strip()
+    return plain(name)
 
 
 def extras(key, data):
@@ -86,12 +129,12 @@ def read_places():
                 missing[key] = missing.get(key, 0) + 1
                 continue
             lat, lon, decimals = at
-            name = plain(placemark.findtext(KML + "name")) or plain(first(data, name_keys))
+            name = (placemark.findtext(KML + "name") or "").strip() or first(data, name_keys)
             rough = 0 if decimals >= 3 else 1 if decimals == 2 else 2
             extra = extras(key, data)
             rows.append({
                 "layer": key,
-                "name": name,
+                "name": place_name(key, name),
                 "address": plain(first(data, address_keys)),
                 "lat": round(lat, 5),
                 "lon": round(lon, 5),
