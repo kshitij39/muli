@@ -1,9 +1,22 @@
+import { Route, Routes } from 'react-router'
+import Header from './components/Header.jsx'
+import Home from './pages/Home.jsx'
+
 function App() {
   return (
-    <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-      <h1 className="text-3xl font-bold">MULI</h1>
-      <p className="mt-2 text-stone-600">Health, toilets and schools in Mumbai, ward by ward.</p>
-    </main>
+    <>
+      <Header />
+      <main>
+        <Routes>
+          <Route path="/" element={<Home />} />
+        </Routes>
+      </main>
+      <footer className="mt-12 border-t border-stone-200 bg-white">
+        <div className="mx-auto max-w-6xl px-4 py-5 text-sm text-stone-500 sm:px-6">
+          Places: BMC's map layers, from OpenCity. People per ward: BMC, mid-year 2023. Map: © OpenStreetMap contributors.
+        </div>
+      </footer>
+    </>
   )
 }
 
