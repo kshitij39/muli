@@ -5,6 +5,10 @@ import re
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
+from shapely import prepared
+from shapely.geometry import Point, Polygon
+from shapely.ops import unary_union
+
 ROOT = Path(__file__).resolve().parent.parent
 RAW = ROOT / "data" / "raw"
 KML = "{http://www.opengis.net/kml/2.2}"
@@ -29,6 +33,7 @@ LAYERS = [
     ("parking", "city/parking.kml", [], []),
 ]
 SCHOOLS = {"municipal", "aided", "unaided"}
+WARD_FIELDS = ["Ward", "WARD", "Ward_s", "VillageNam", "WARD_NAME"]
 
 SHORT = {
     "MUN": "Municipal", "MUN.": "Municipal", "MNP": "Municipal", "MUNICIPAL": "Municipal", "MUNCIPAL": "Municipal",
@@ -62,6 +67,28 @@ def first_point(placemark):
         decimals = min(len(part.split(".")[1]) if "." in part else 0 for part in (lon, lat))
         return float(lat), float(lon), decimals
     return None
+
+
+def polygons(placemark):
+    shapes = []
+    for polygon in placemark.iter(KML + "Polygon"):
+        rings = [
+            [tuple(map(float, point.split(",")[:2])) for point in ring.text.split()]
+            for ring in polygon.iter(KML + "coordinates")
+        ]
+        shapes.append(Polygon(rings[0], rings[1:]).buffer(0))
+    return unary_union(shapes)
+
+
+def read_wards():
+    return {fields(placemark)["NAME"].strip(): polygons(placemark) for placemark in placemarks("city/ward_map.kml")}
+
+
+def written_ward(data, codes):
+    code = re.sub(r"WARD|\s|-", "", first(data, WARD_FIELDS).upper())
+    if len(code) >= 2 and code[0] in "FGHKMPR":
+        code = re.sub(r"^([A-Z])/?([A-Z])1?$", r"\1/\2", code)
+    return code if code in codes else ""
 
 
 def first(data, keys):
@@ -118,7 +145,13 @@ def extras(key, data):
     return {}
 
 
-def read_places():
+def read_places(wards):
+    shapes = {code: prepared.prep(shape) for code, shape in wards.items()}
+
+    def ward_at(lat, lon):
+        point = Point(lon, lat)
+        return next((code for code, shape in shapes.items() if shape.contains(point)), "")
+
     rows = []
     missing = {}
     for key, path, name_keys, address_keys in LAYERS:
@@ -131,6 +164,7 @@ def read_places():
             lat, lon, decimals = at
             name = (placemark.findtext(KML + "name") or "").strip() or first(data, name_keys)
             rough = 0 if decimals >= 3 else 1 if decimals == 2 else 2
+            ward = ward_at(lat, lon) if not rough else written_ward(data, wards) or ward_at(lat, lon)
             extra = extras(key, data)
             rows.append({
                 "layer": key,
@@ -138,6 +172,7 @@ def read_places():
                 "address": plain(first(data, address_keys)),
                 "lat": round(lat, 5),
                 "lon": round(lon, 5),
+                "ward": ward,
                 "rough": rough,
                 "extra": json.dumps(extra) if extra else "",
             })
@@ -145,7 +180,8 @@ def read_places():
 
 
 def main():
-    rows, missing = read_places()
+    wards = read_wards()
+    rows, missing = read_places(wards)
     with open(ROOT / "data" / "places.csv", "w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=list(rows[0]))
         writer.writeheader()
@@ -158,6 +194,11 @@ def main():
         print(f"{key:12} {counts.get(key, 0):6}")
     print(f"{'total':12} {len(rows):6}")
     print("left out, no location:", missing)
+    outside = {}
+    for row in rows:
+        if not row["ward"]:
+            outside[row["layer"]] = outside.get(row["layer"], 0) + 1
+    print("outside every ward:", outside)
 
 
 if __name__ == "__main__":
