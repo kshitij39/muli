@@ -6,7 +6,7 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 from shapely import prepared
-from shapely.geometry import Point, Polygon
+from shapely.geometry import Point, Polygon, mapping
 from shapely.ops import unary_union
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -179,9 +179,31 @@ def read_places(wards):
     return rows, missing
 
 
+def geojson(features):
+    return {"type": "FeatureCollection", "features": features}
+
+
+def feature(shape, properties, tolerance):
+    geometry = json.loads(json.dumps(mapping(shape.simplify(tolerance))), parse_float=lambda x: round(float(x), 5))
+    return {"type": "Feature", "properties": properties, "geometry": geometry}
+
+
+def write_outlines(wards):
+    features = []
+    for code, shape in sorted(wards.items()):
+        middle = shape.centroid if shape.contains(shape.centroid) else shape.representative_point()
+        features.append(feature(shape, {"code": code, "middle": [round(middle.y, 5), round(middle.x, 5)]}, 0.0002))
+    slums = [feature(polygons(placemark), {}, 0.00005) for placemark in placemarks("city/slum.kml")]
+    for name, features in [("wards", features), ("slums", slums)]:
+        with open(ROOT / "data" / f"{name}.geojson", "w", encoding="utf-8") as f:
+            json.dump(geojson(features), f, separators=(",", ":"))
+            f.write("\n")
+
+
 def main():
     wards = read_wards()
     rows, missing = read_places(wards)
+    write_outlines(wards)
     with open(ROOT / "data" / "places.csv", "w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=list(rows[0]))
         writer.writeheader()
