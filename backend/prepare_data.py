@@ -5,6 +5,10 @@ import re
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
+from shapely import prepared
+from shapely.geometry import Point, Polygon, mapping
+from shapely.ops import unary_union
+
 ROOT = Path(__file__).resolve().parent.parent
 RAW = ROOT / "data" / "raw"
 KML = "{http://www.opengis.net/kml/2.2}"
@@ -29,6 +33,18 @@ LAYERS = [
     ("parking", "city/parking.kml", [], []),
 ]
 SCHOOLS = {"municipal", "aided", "unaided"}
+WARD_FIELDS = ["Ward", "WARD", "Ward_s", "VillageNam", "WARD_NAME"]
+
+SHORT = {
+    "MUN": "Municipal", "MUN.": "Municipal", "MNP": "Municipal", "MUNICIPAL": "Municipal", "MUNCIPAL": "Municipal",
+    "UP": "Upper Primary", "U.P.": "Upper Primary", "U.P": "Upper Primary", "LP": "Lower Primary", "L.P.": "Lower Primary",
+    "MAR": "Marathi", "MAR.": "Marathi", "MR": "Marathi", "URD": "Urdu", "ENG": "English", "GUJ": "Gujarati",
+    "GUJRATI": "Gujarati", "HIN": "Hindi", "HIND": "Hindi", "TML": "Tamil", "KAN": "Kannada", "KANNAD": "Kannada",
+    "NGR": "Nagar", "RD": "Road", "RD.": "Road", "MRG": "Marg", "SCH": "School", "SCH.": "School", "SEC": "Secondary",
+    "SEC.": "Secondary", "MPS": "Mumbai Public School", "NO.": "No.", "NO": "No.", "MG": "MG", "PRI": "Primary",
+    "SCHOOL": "School", "BMC": "BMC", "STASTION": "Station",
+}
+TYPOGRAPHIC = str.maketrans({"\u2013": "-", "\u2014": "-", "\u2018": "'", "\u2019": "'", "\u201c": '"', "\u201d": '"', "\u20ac": " "})
 
 
 def placemarks(path):
@@ -53,12 +69,66 @@ def first_point(placemark):
     return None
 
 
+def polygons(placemark):
+    shapes = []
+    for polygon in placemark.iter(KML + "Polygon"):
+        rings = [
+            [tuple(map(float, point.split(",")[:2])) for point in ring.text.split()]
+            for ring in polygon.iter(KML + "coordinates")
+        ]
+        shapes.append(Polygon(rings[0], rings[1:]).buffer(0))
+    return unary_union(shapes)
+
+
+def read_wards():
+    return {fields(placemark)["NAME"].strip(): polygons(placemark) for placemark in placemarks("city/ward_map.kml")}
+
+
+def written_ward(data, codes):
+    code = re.sub(r"WARD|\s|-", "", first(data, WARD_FIELDS).upper())
+    if len(code) >= 2 and code[0] in "FGHKMPR":
+        code = re.sub(r"^([A-Z])/?([A-Z])1?$", r"\1/\2", code)
+    return code if code in codes else ""
+
+
 def first(data, keys):
     return next((data[key] for key in keys if data.get(key)), "")
 
 
 def plain(text):
-    return re.sub(r"\s+", " ", html.unescape(text or "")).strip()
+    text = html.unescape(text or "").translate(TYPOGRAPHIC)
+    text = re.sub(r"\s+", " ", text).strip(" ,.-")
+    if text.isupper():
+        text = text.title()
+    return re.sub(r"\bH\.\s?P\b\.?|\bHp\b\.?|\bHP\b\.?", "Health Post", text)
+
+
+def school_name(name):
+    tokens = []
+    for token in re.sub(r"\s+", " ", name.upper()).replace("(", " ").replace(")", " ").split():
+        tokens += [token] if token in SHORT else [part for part in re.split(r"(?<=\.)(?=[A-Z0-9])", token) if part]
+    words = []
+    for i, token in enumerate(tokens):
+        if token == "X" and i + 1 < len(tokens) and tokens[i + 1] in ("RD", "RD.", "ROAD"):
+            words.append("Cross")
+            continue
+        word = SHORT.get(token, token.title())
+        if token in SHORT and words and words[-1].endswith(word):
+            continue
+        words.append(word)
+    return " ".join(words)
+
+
+def place_name(key, name):
+    if key in SCHOOLS:
+        return school_name(name)
+    if key == "toilet":
+        return "Public toilet"
+    if key == "ward_office":
+        return f"{name} ward office"
+    if key == "parking":
+        return f"Parking {plain(name)}".strip()
+    return plain(name)
 
 
 def extras(key, data):
@@ -75,7 +145,13 @@ def extras(key, data):
     return {}
 
 
-def read_places():
+def read_places(wards):
+    shapes = {code: prepared.prep(shape) for code, shape in wards.items()}
+
+    def ward_at(lat, lon):
+        point = Point(lon, lat)
+        return next((code for code, shape in shapes.items() if shape.contains(point)), "")
+
     rows = []
     missing = {}
     for key, path, name_keys, address_keys in LAYERS:
@@ -86,23 +162,48 @@ def read_places():
                 missing[key] = missing.get(key, 0) + 1
                 continue
             lat, lon, decimals = at
-            name = plain(placemark.findtext(KML + "name")) or plain(first(data, name_keys))
+            name = (placemark.findtext(KML + "name") or "").strip() or first(data, name_keys)
             rough = 0 if decimals >= 3 else 1 if decimals == 2 else 2
+            ward = ward_at(lat, lon) if not rough else written_ward(data, wards) or ward_at(lat, lon)
             extra = extras(key, data)
             rows.append({
                 "layer": key,
-                "name": name,
+                "name": place_name(key, name),
                 "address": plain(first(data, address_keys)),
                 "lat": round(lat, 5),
                 "lon": round(lon, 5),
+                "ward": ward,
                 "rough": rough,
                 "extra": json.dumps(extra) if extra else "",
             })
     return rows, missing
 
 
+def geojson(features):
+    return {"type": "FeatureCollection", "features": features}
+
+
+def feature(shape, properties, tolerance):
+    geometry = json.loads(json.dumps(mapping(shape.simplify(tolerance))), parse_float=lambda x: round(float(x), 5))
+    return {"type": "Feature", "properties": properties, "geometry": geometry}
+
+
+def write_outlines(wards):
+    features = []
+    for code, shape in sorted(wards.items()):
+        middle = shape.centroid if shape.contains(shape.centroid) else shape.representative_point()
+        features.append(feature(shape, {"code": code, "middle": [round(middle.y, 5), round(middle.x, 5)]}, 0.0002))
+    slums = [feature(polygons(placemark), {}, 0.00005) for placemark in placemarks("city/slum.kml")]
+    for name, features in [("wards", features), ("slums", slums)]:
+        with open(ROOT / "data" / f"{name}.geojson", "w", encoding="utf-8") as f:
+            json.dump(geojson(features), f, separators=(",", ":"))
+            f.write("\n")
+
+
 def main():
-    rows, missing = read_places()
+    wards = read_wards()
+    rows, missing = read_places(wards)
+    write_outlines(wards)
     with open(ROOT / "data" / "places.csv", "w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=list(rows[0]))
         writer.writeheader()
@@ -115,6 +216,11 @@ def main():
         print(f"{key:12} {counts.get(key, 0):6}")
     print(f"{'total':12} {len(rows):6}")
     print("left out, no location:", missing)
+    outside = {}
+    for row in rows:
+        if not row["ward"]:
+            outside[row["layer"]] = outside.get(row["layer"], 0) + 1
+    print("outside every ward:", outside)
 
 
 if __name__ == "__main__":
