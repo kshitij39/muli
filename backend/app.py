@@ -5,7 +5,7 @@ import sqlite3
 from pathlib import Path
 
 import click
-from flask import Flask, g, request
+from flask import Flask, abort, g, request, send_from_directory
 
 DATA = Path(__file__).resolve().parent.parent / "data"
 
@@ -132,3 +132,10 @@ def places():
         small = False
     rows = get_db().execute(sql, args)
     return [place_dict(row) for row in rows if small or row["layer"] not in NEAR_ONLY]
+
+
+@app.get("/api/outlines/<name>")
+def outlines(name):
+    if name not in ("wards", "slums"):
+        abort(404)
+    return send_from_directory(DATA, f"{name}.geojson", mimetype="application/geo+json", max_age=86400)
