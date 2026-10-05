@@ -54,6 +54,41 @@
     text-decoration: none;
   }
 
+  .nav-link {
+    display: flex;
+    align-items: center;
+    border-bottom: 2px solid transparent;
+    color: #d6d3d1;
+    font-weight: 500;
+    text-decoration: none;
+  }
+
+  .nav-link:hover,
+  .nav-link.active {
+    color: #fff;
+  }
+
+  .nav-link.active {
+    border-color: #ffd23f;
+  }
+
+  .linklike {
+    color: #1d4ed8;
+    text-align: left;
+    text-decoration: underline;
+    text-decoration-color: rgb(29 78 216 / 0.3);
+    text-underline-offset: 3px;
+    cursor: pointer;
+  }
+
+  .mark {
+    display: inline-block;
+    flex: none;
+    width: 0.625rem;
+    height: 0.625rem;
+    border-radius: 2px;
+  }
+
   .btn {
     display: inline-flex;
     gap: 0.5rem;
