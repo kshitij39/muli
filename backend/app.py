@@ -1,11 +1,13 @@
 import csv
 import json
 import math
+import re
 import sqlite3
 from pathlib import Path
 
 import click
 from flask import Flask, abort, g, request, send_from_directory
+from werkzeug.security import generate_password_hash
 
 DATA = Path(__file__).resolve().parent.parent / "data"
 
@@ -29,6 +31,8 @@ LAYERS = [
     {"key": "parking", "label": "Parking", "one": "Parking", "category": "city", "on": False},
 ]
 NEAR_ONLY = {layer["key"] for layer in LAYERS if layer.get("near_only")}
+MODES = {"civic": "Civic", "ngo": "NGO"}
+USERNAME = re.compile(r"[a-z0-9._-]{3,30}")
 
 app = Flask(__name__, instance_relative_config=True)
 app.config["DATABASE"] = Path(app.instance_path) / "muli.sqlite"
@@ -139,3 +143,38 @@ def outlines(name):
     if name not in ("wards", "slums"):
         abort(404)
     return send_from_directory(DATA, f"{name}.geojson", mimetype="application/geo+json", max_age=86400)
+
+
+def account(user):
+    return {"username": user["username"], "name": user["name"], "mode": user["mode"], "ngo_name": user["ngo_name"]}
+
+
+@app.post("/api/accounts")
+def create_account():
+    data = request.get_json(silent=True) or {}
+    mode = data.get("mode")
+    name = str(data.get("name", "")).strip()
+    ngo_name = str(data.get("ngo_name", "")).strip()
+    username = str(data.get("username", "")).strip().lower()
+    password = str(data.get("password", ""))
+    if mode not in MODES:
+        return {"error": "Choose Civic or NGO."}, 400
+    if len(name) < 2:
+        return {"error": "Enter your name."}, 400
+    if mode == "ngo" and len(ngo_name) < 2:
+        return {"error": "Enter your NGO's name."}, 400
+    if not USERNAME.fullmatch(username):
+        return {"error": "Use 3 to 30 small letters, numbers, dots or dashes for the username."}, 400
+    if len(password) < 8:
+        return {"error": "Use at least 8 characters for the password."}, 400
+
+    db = get_db()
+    if db.execute("SELECT 1 FROM users WHERE username = ?", (username,)).fetchone():
+        return {"error": "That username is taken. Try another."}, 409
+    db.execute(
+        "INSERT INTO users (username, password_hash, name, mode, ngo_name) VALUES (?, ?, ?, ?, ?)",
+        (username, generate_password_hash(password), name, mode, ngo_name if mode == "ngo" else None),
+    )
+    db.commit()
+    user = db.execute("SELECT * FROM users WHERE username = ?", (username,)).fetchone()
+    return account(user), 201
