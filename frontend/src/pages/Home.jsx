@@ -1,3 +1,5 @@
+import PageTop from '../components/PageTop.jsx'
+
 const CIVIC = [
   'See health posts, toilets, schools and more near you',
   'Come along to an event, or volunteer',
@@ -29,16 +31,10 @@ function Side({ title, who, things }) {
 function Home() {
   return (
     <>
-      <div className="border-b border-stone-200 bg-white">
-        <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
-          <h1 className="text-2xl font-bold sm:text-3xl">Health, toilets and schools, ward by ward</h1>
-          <p className="mt-1.5 max-w-3xl text-stone-600">
-            BMC maps thousands of public places across Mumbai: health posts, dispensaries, public toilets, schools and
-            more. MULI puts them next to how many people live in each of the 24 wards. NGOs plan events where each place
-            has to serve the most people, and people nearby come along, volunteer or tell NGOs about problems.
-          </p>
-        </div>
-      </div>
+      <PageTop
+        title="Health, toilets and schools, ward by ward"
+        text="BMC maps thousands of public places across Mumbai: health posts, dispensaries, public toilets, schools and more. MULI puts them next to how many people live in each of the 24 wards. NGOs plan events where each place has to serve the most people, and people nearby come along, volunteer or tell NGOs about problems."
+      />
       <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
         <p className="mb-4 text-stone-600">How will you use MULI? An account is either Civic or NGO.</p>
         <div className="grid gap-6 md:grid-cols-2">
