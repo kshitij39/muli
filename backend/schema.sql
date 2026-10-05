@@ -19,3 +19,15 @@ CREATE TABLE wards (
   code TEXT PRIMARY KEY,
   population INTEGER NOT NULL
 );
+
+DROP TABLE IF EXISTS users;
+
+CREATE TABLE users (
+  id INTEGER PRIMARY KEY,
+  username TEXT NOT NULL UNIQUE,
+  password_hash TEXT NOT NULL,
+  name TEXT NOT NULL,
+  mode TEXT NOT NULL,
+  ngo_name TEXT,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
