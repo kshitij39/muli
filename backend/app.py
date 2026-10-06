@@ -1,13 +1,14 @@
 import csv
 import json
 import math
+import os
 import re
 import sqlite3
 from pathlib import Path
 
 import click
-from flask import Flask, abort, g, request, send_from_directory
-from werkzeug.security import generate_password_hash
+from flask import Flask, abort, g, request, send_from_directory, session
+from werkzeug.security import check_password_hash, generate_password_hash
 
 DATA = Path(__file__).resolve().parent.parent / "data"
 
@@ -36,6 +37,7 @@ USERNAME = re.compile(r"[a-z0-9._-]{3,30}")
 
 app = Flask(__name__, instance_relative_config=True)
 app.config["DATABASE"] = Path(app.instance_path) / "muli.sqlite"
+app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev")
 
 
 def get_db():
@@ -177,4 +179,41 @@ def create_account():
     )
     db.commit()
     user = db.execute("SELECT * FROM users WHERE username = ?", (username,)).fetchone()
+    session.clear()
+    session["user_id"] = user["id"]
     return account(user), 201
+
+
+def signed_in_user():
+    if "user_id" not in session:
+        return None
+    return get_db().execute("SELECT * FROM users WHERE id = ?", (session["user_id"],)).fetchone()
+
+
+@app.post("/api/session")
+def sign_in():
+    data = request.get_json(silent=True) or {}
+    mode = data.get("mode")
+    username = str(data.get("username", "")).strip().lower()
+    password = str(data.get("password", ""))
+    user = get_db().execute("SELECT * FROM users WHERE username = ?", (username,)).fetchone()
+    if not user or not check_password_hash(user["password_hash"], password):
+        return {"error": "That username and password don't match."}, 401
+    if user["mode"] != mode:
+        other = MODES[user["mode"]]
+        return {"error": f"{username} is {'an' if other == 'NGO' else 'a'} {other} account. Use {other} sign in instead."}, 403
+    session.clear()
+    session["user_id"] = user["id"]
+    return account(user)
+
+
+@app.delete("/api/session")
+def sign_out():
+    session.clear()
+    return {"ok": True}
+
+
+@app.get("/api/me")
+def me():
+    user = signed_in_user()
+    return {"user": account(user) if user else None}
