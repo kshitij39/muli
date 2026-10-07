@@ -1,9 +1,10 @@
 import L from 'leaflet'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { CircleMarker } from 'react-leaflet'
 import { api } from '../api.js'
 import MapView from '../components/MapView.jsx'
 import PageTop from '../components/PageTop.jsx'
+import PlaceDot from '../components/PlaceDot.jsx'
 import { CATEGORIES, GOVANDI_STATION, distanceText, placeDetails, walkTime } from '../places.js'
 
 const SHOWN = 25
@@ -13,6 +14,8 @@ function NearMe() {
   const [spot, setSpot] = useState(null)
   const [found, setFound] = useState(null)
   const [status, setStatus] = useState('')
+  const map = useRef(null)
+  const markers = useRef({})
 
   useEffect(() => {
     api('/api/layers').then(setLayers)
@@ -44,6 +47,15 @@ function NearMe() {
     )
   }
 
+  function keepMarker(id, marker) {
+    markers.current[id] = marker
+  }
+
+  function showOnMap(place) {
+    map.current.setView([place.lat, place.lon], Math.max(map.current.getZoom(), 16), { animate: false })
+    markers.current[place.id]?.openPopup()
+  }
+
   const bounds = useMemo(() => (spot ? L.latLng(spot.lat, spot.lon).toBounds(2000) : null), [spot])
   const byKey = Object.fromEntries(layers.map((layer) => [layer.key, layer]))
 
@@ -62,6 +74,7 @@ function NearMe() {
         <div className="mt-4 grid gap-6 lg:grid-cols-5">
           <div className="lg:order-2 lg:col-span-3">
             <MapView
+              ref={map}
               bounds={bounds}
               onClick={(clicked) => {
                 setStatus('Showing places near the spot you clicked.')
@@ -77,6 +90,9 @@ function NearMe() {
                   pathOptions={{ color: '#1c1917', weight: 3, fillColor: '#fff', fillOpacity: 1 }}
                 />
               )}
+              {found?.map((place) => (
+                <PlaceDot key={place.id} place={place} layer={byKey[place.layer]} km={place.km} onMarker={keepMarker} />
+              ))}
             </MapView>
           </div>
           <section className="panel lg:order-1 lg:col-span-2">
@@ -109,11 +125,18 @@ function NearMe() {
                       <li key={place.id} className="flex gap-3 px-4 py-2.5">
                         <span className="mark mt-1.5" style={{ background: CATEGORIES[layer.category].color }} />
                         <div className="min-w-0 flex-1">
-                          <div className="font-semibold leading-snug">{place.name}</div>
+                          <button
+                            type="button"
+                            className="text-left font-semibold leading-snug hover:underline"
+                            onClick={() => showOnMap(place)}
+                          >
+                            {place.name}
+                          </button>
                           <div className="text-sm text-stone-600">{kind}</div>
                           {place.layer === 'toilet' && place.address && (
                             <div className="text-xs text-stone-500">{place.address}</div>
                           )}
+                          {place.rough === 1 && <div className="text-xs text-amber-800">Approximate location</div>}
                         </div>
                         <div className="shrink-0 text-right text-sm tabular-nums">
                           <div className="font-medium">{walkTime(place.km)}</div>

@@ -20,7 +20,7 @@ function Clicks({ onClick }) {
   return null
 }
 
-function MapView({ bounds, onClick, className = 'h-96', children }) {
+function MapView({ ref, bounds, onClick, className = 'h-96', children }) {
   const [wards, setWards] = useState(null)
 
   useEffect(() => {
@@ -29,7 +29,14 @@ function MapView({ bounds, onClick, className = 'h-96', children }) {
   }, [])
 
   return (
-    <MapContainer center={[19.07, 72.88]} zoom={11} scrollWheelZoom={false} preferCanvas className={`panel ${className}`}>
+    <MapContainer
+      ref={ref}
+      center={[19.07, 72.88]}
+      zoom={11}
+      scrollWheelZoom={false}
+      preferCanvas
+      className={`panel ${className}`}
+    >
       <TileLayer
         url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
         maxZoom={19}
