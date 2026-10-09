@@ -1,4 +1,4 @@
-import { Link } from 'react-router'
+import { Link, NavLink } from 'react-router'
 
 function Header() {
   return (
@@ -7,6 +7,11 @@ function Header() {
         <Link to="/" className="logo">
           MULI
         </Link>
+        <nav className="flex h-full gap-5 text-sm">
+          <NavLink to="/near" className="nav-link">
+            Near me
+          </NavLink>
+        </nav>
       </div>
     </header>
   )
