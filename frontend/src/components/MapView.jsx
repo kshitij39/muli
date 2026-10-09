@@ -13,14 +13,15 @@ function Fit({ bounds }) {
   return null
 }
 
-function Clicks({ onClick }) {
+function Events({ onClick, onMove }) {
   useMapEvents({
     click: (event) => onClick?.({ lat: event.latlng.lat, lon: event.latlng.lng }),
+    moveend: (event) => onMove?.(event.target),
   })
   return null
 }
 
-function MapView({ ref, bounds, onClick, className = 'h-96', children }) {
+function MapView({ ref, bounds, onClick, onMove, className = 'h-96', children }) {
   const [wards, setWards] = useState(null)
 
   useEffect(() => {
@@ -48,7 +49,7 @@ function MapView({ ref, bounds, onClick, className = 'h-96', children }) {
         )}
       </Pane>
       <Fit bounds={bounds} />
-      <Clicks onClick={onClick} />
+      <Events onClick={onClick} onMove={onMove} />
       {children}
     </MapContainer>
   )
