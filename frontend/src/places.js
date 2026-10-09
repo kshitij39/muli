@@ -7,6 +7,12 @@ export const CATEGORIES = {
 
 export const GOVANDI_STATION = { lat: 19.05509, lon: 72.91539 }
 
+export function distanceKm(a, b) {
+  const north = (a.lat - b.lat) * 111.32
+  const east = (a.lon - b.lon) * 111.32 * Math.cos((19.07 * Math.PI) / 180)
+  return Math.hypot(north, east)
+}
+
 export function walkTime(km) {
   const minutes = Math.max(1, Math.round(((km * 1.3) / 4.5) * 60))
   return minutes >= 60 ? 'over an hour' : `${minutes} min`
