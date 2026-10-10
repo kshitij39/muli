@@ -3,7 +3,12 @@ import { useEffect, useState } from 'react'
 import { GeoJSON, MapContainer, Pane, TileLayer, useMap, useMapEvents } from 'react-leaflet'
 import { api } from '../api.js'
 
-let wardOutlines = null
+const outlines = {}
+
+function loadOutlines(name) {
+  outlines[name] ??= api(`/api/outlines/${name}`)
+  return outlines[name]
+}
 
 function Fit({ bounds }) {
   const map = useMap()
@@ -21,13 +26,17 @@ function Events({ onClick, onMove }) {
   return null
 }
 
-function MapView({ ref, bounds, onClick, onMove, className = 'h-96', children }) {
+function MapView({ ref, bounds, onClick, onMove, showWards = true, showSlums = false, className = 'h-96', children }) {
   const [wards, setWards] = useState(null)
+  const [slums, setSlums] = useState(null)
 
   useEffect(() => {
-    wardOutlines ??= api('/api/outlines/wards')
-    wardOutlines.then(setWards)
+    loadOutlines('wards').then(setWards)
   }, [])
+
+  useEffect(() => {
+    if (showSlums) loadOutlines('slums').then(setSlums)
+  }, [showSlums])
 
   return (
     <MapContainer
@@ -44,7 +53,10 @@ function MapView({ ref, bounds, onClick, onMove, className = 'h-96', children })
         attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       />
       <Pane name="areas" style={{ zIndex: 350 }}>
-        {wards && (
+        {showSlums && slums && (
+          <GeoJSON data={slums} interactive={false} style={{ stroke: false, fillColor: '#a8a29e', fillOpacity: 0.28 }} />
+        )}
+        {showWards && wards && (
           <GeoJSON data={wards} interactive={false} style={{ color: '#44403c', weight: 1.2, opacity: 0.7, fill: false }} />
         )}
       </Pane>
