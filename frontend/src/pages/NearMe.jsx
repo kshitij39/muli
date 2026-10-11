@@ -1,20 +1,38 @@
 import L from 'leaflet'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { CircleMarker } from 'react-leaflet'
+import { Circle, CircleMarker, Marker } from 'react-leaflet'
 import { api } from '../api.js'
 import MapView from '../components/MapView.jsx'
 import PageTop from '../components/PageTop.jsx'
 import PlaceDot from '../components/PlaceDot.jsx'
+import { BLOCKED, findMe, locationPermission, savedSpot, saveSpot } from '../location.js'
 import { CATEGORIES, GOVANDI_STATION, distanceKm, distanceText, placeDetails, walkTime } from '../places.js'
 
 const SHOWN = 25
 const GROUPS = ['health', 'education', 'sanitation', 'city']
 const DISTANCES = { 0.5: '500 m', 1: '1 km', 2: '2 km' }
+const YOU = L.divIcon({ className: '', html: '<div class="you"></div>', iconSize: [18, 18], iconAnchor: [9, 9] })
+
+function placedText(found) {
+  const within = distanceText(found.accuracy / 1000)
+  if (found.accuracy > 1000) {
+    return `Your browser only knows roughly where you are, within about ${within} (the blue circle). If that's wrong, click the map where you are.`
+  }
+  return `Showing places near you. Your browser placed you within about ${within}. Not right? Click the map where you are.`
+}
+
+function startText(spot) {
+  if (!spot) return ''
+  return spot.gps
+    ? 'Showing places near where you were found earlier. Use my location to update it.'
+    : 'Showing places near the spot you chose earlier.'
+}
 
 function NearMe() {
   const [layers, setLayers] = useState([])
   const [enabled, setEnabled] = useState([])
-  const [spot, setSpot] = useState(null)
+  const [spot, setSpot] = useState(savedSpot)
+  const [finding, setFinding] = useState(false)
   const [found, setFound] = useState(null)
   const [km, setKm] = useState(1)
   const [cityWide, setCityWide] = useState([])
@@ -22,9 +40,20 @@ function NearMe() {
   const [view, setView] = useState(null)
   const [showWards, setShowWards] = useState(true)
   const [showSlums, setShowSlums] = useState(true)
-  const [status, setStatus] = useState('')
+  const [status, setStatus] = useState(() => startText(spot))
   const map = useRef(null)
   const markers = useRef({})
+  const stopFinding = useRef(() => {})
+
+  useEffect(() => {
+    if (!savedSpot()) {
+      locationPermission().then((answer) => {
+        if (answer === 'granted') startFinding()
+        if (answer === 'denied') setStatus(`${BLOCKED} Or click the map where you are.`)
+      })
+    }
+    return () => stopFinding.current()
+  }, [])
 
   useEffect(() => {
     api('/api/layers').then((data) => {
@@ -59,23 +88,32 @@ function NearMe() {
     setEnabled(on ? [...enabled, key] : enabled.filter((other) => other !== key))
   }
 
-  function chooseSpot(newSpot) {
+  function showNear(newSpot, message) {
+    saveSpot(newSpot)
     setFound(null)
     setSpot(newSpot)
+    setStatus(message)
   }
 
-  function useMyLocation() {
-    if (!navigator.geolocation) {
-      setStatus("This browser can't share your location.")
-      return
-    }
-    setStatus('Finding where you are...')
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setStatus('Showing places near you.')
-        chooseSpot({ lat: position.coords.latitude, lon: position.coords.longitude })
+  function chooseSpot(newSpot, message) {
+    stopFinding.current()
+    setFinding(false)
+    showNear(newSpot, message)
+  }
+
+  function startFinding() {
+    stopFinding.current()
+    setFinding(true)
+    setStatus('Your browser is working out where you are. On a laptop this can take up to half a minute. In a hurry? Click the map where you are.')
+    stopFinding.current = findMe(
+      (found) => {
+        setFinding(false)
+        showNear(found, placedText(found))
       },
-      () => setStatus("Couldn't find your location."),
+      (problem) => {
+        setFinding(false)
+        setStatus(`${problem} Or click the map where you are.`)
+      },
     )
   }
 
@@ -110,7 +148,7 @@ function NearMe() {
       />
       <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
         <div className="flex flex-wrap items-center gap-3">
-          <button type="button" className="btn btn-primary" onClick={useMyLocation}>
+          <button type="button" className="btn btn-primary" onClick={startFinding} disabled={finding}>
             Use my location
           </button>
           <label htmlFor="distance" className="sr-only">
@@ -187,13 +225,21 @@ function NearMe() {
               onMove={moved}
               showWards={showWards}
               showSlums={showSlums}
-              onClick={(clicked) => {
-                setStatus('Showing places near the spot you clicked.')
-                chooseSpot(clicked)
-              }}
+              onClick={(clicked) => chooseSpot(clicked, 'Showing places near the spot you clicked.')}
               className="h-80 sm:h-96 lg:sticky lg:top-4 lg:h-[36rem]"
             >
-              {spot && (
+              {spot?.gps && (
+                <>
+                  <Circle
+                    center={[spot.lat, spot.lon]}
+                    radius={spot.accuracy}
+                    interactive={false}
+                    pathOptions={{ color: '#2563eb', weight: 1, fillOpacity: 0.08 }}
+                  />
+                  <Marker position={[spot.lat, spot.lon]} icon={YOU} interactive={false} keyboard={false} />
+                </>
+              )}
+              {spot && !spot.gps && (
                 <CircleMarker
                   center={[spot.lat, spot.lon]}
                   radius={7}
@@ -218,7 +264,7 @@ function NearMe() {
                 <p>Use your location, or click the map where you are, to see what's around you.</p>
                 <p className="mt-2 text-sm">
                   Just trying it out?{' '}
-                  <button type="button" className="linklike" onClick={() => chooseSpot(GOVANDI_STATION)}>
+                  <button type="button" className="linklike" onClick={() => chooseSpot(GOVANDI_STATION, 'Showing places near Govandi station.')}>
                     Start from Govandi station
                   </button>
                   .
