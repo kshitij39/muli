@@ -1,3 +1,4 @@
+import { Link } from 'react-router'
 import PageTop from '../components/PageTop.jsx'
 
 const CIVIC = [
@@ -12,18 +13,23 @@ const NGO = [
   'Check the problems people report',
 ]
 
-function Side({ title, who, things }) {
+function Side({ mode, title, who, things }) {
   return (
-    <section className="panel">
+    <section className="panel flex flex-col">
       <div className="panel-head">
         <h2>{title}</h2>
         <span className="text-sm text-stone-500">{who}</span>
       </div>
-      <ul className="list-disc space-y-1.5 py-4 pr-5 pl-9">
+      <ul className="flex-1 list-disc space-y-1.5 py-4 pr-5 pl-9">
         {things.map((thing) => (
           <li key={thing}>{thing}</li>
         ))}
       </ul>
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-stone-200 px-5 py-4">
+        <Link to={`/signin?as=${mode}`} className="btn btn-primary">
+          Sign in
+        </Link>
+      </div>
     </section>
   )
 }
@@ -38,8 +44,8 @@ function Home() {
       <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
         <p className="mb-4 text-stone-600">How will you use MULI? An account is either Civic or NGO.</p>
         <div className="grid gap-6 md:grid-cols-2">
-          <Side title="Civic" who="For people in Mumbai" things={CIVIC} />
-          <Side title="NGO" who="For organisations" things={NGO} />
+          <Side mode="civic" title="Civic" who="For people in Mumbai" things={CIVIC} />
+          <Side mode="ngo" title="NGO" who="For organisations" things={NGO} />
         </div>
         <section className="panel mt-6 p-4 text-sm text-stone-600">
           <h2 className="mb-1 font-semibold text-stone-900">Where the numbers come from</h2>

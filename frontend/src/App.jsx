@@ -1,9 +1,20 @@
+import { useEffect, useState } from 'react'
 import { Route, Routes } from 'react-router'
+import { api } from './api.js'
 import Header from './components/Header.jsx'
 import Home from './pages/Home.jsx'
 import NearMe from './pages/NearMe.jsx'
+import SignIn from './pages/SignIn.jsx'
 
 function App() {
+  const [me, setMe] = useState(undefined)
+
+  useEffect(() => {
+    api('/api/me').then((data) => setMe(data.user))
+  }, [])
+
+  if (me === undefined) return null
+
   return (
     <>
       <Header />
@@ -11,6 +22,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/near" element={<NearMe />} />
+          <Route path="/signin" element={<SignIn me={me} setMe={setMe} />} />
         </Routes>
       </main>
       <footer className="mt-12 border-t border-stone-200 bg-white">

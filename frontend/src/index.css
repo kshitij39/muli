@@ -89,6 +89,20 @@
     border-radius: 2px;
   }
 
+  .label {
+    display: block;
+    margin-bottom: 0.375rem;
+    color: #44403c;
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+
+  .hint {
+    color: #78716c;
+    font-size: 0.8125rem;
+    font-weight: 400;
+  }
+
   .btn {
     display: inline-flex;
     gap: 0.5rem;
