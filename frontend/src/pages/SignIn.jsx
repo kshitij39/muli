@@ -83,6 +83,9 @@ function SignIn({ me, setMe }) {
               </button>
             </div>
           </form>
+          <p className="border-t border-stone-200 px-5 py-3 text-sm">
+            New here? <Link to={`/signup?as=${mode}`}>Create {mode === 'ngo' ? 'an NGO' : 'a Civic'} account</Link>
+          </p>
         </section>
       </div>
     </>

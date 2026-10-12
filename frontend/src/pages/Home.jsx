@@ -29,6 +29,9 @@ function Side({ mode, title, who, things }) {
         <Link to={`/signin?as=${mode}`} className="btn btn-primary">
           Sign in
         </Link>
+        <Link to={`/signup?as=${mode}`} className="text-sm">
+          New here? Create {mode === 'ngo' ? 'an NGO' : 'a Civic'} account
+        </Link>
       </div>
     </section>
   )
