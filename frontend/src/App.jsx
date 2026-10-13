@@ -4,6 +4,7 @@ import { api } from './api.js'
 import Header from './components/Header.jsx'
 import Home from './pages/Home.jsx'
 import NearMe from './pages/NearMe.jsx'
+import Profile from './pages/Profile.jsx'
 import SignIn from './pages/SignIn.jsx'
 import SignUp from './pages/SignUp.jsx'
 
@@ -18,13 +19,14 @@ function App() {
 
   return (
     <>
-      <Header />
+      <Header me={me} />
       <main>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/near" element={<NearMe />} />
           <Route path="/signin" element={<SignIn me={me} setMe={setMe} />} />
           <Route path="/signup" element={<SignUp me={me} setMe={setMe} />} />
+          <Route path="/profile" element={<Profile me={me} setMe={setMe} />} />
         </Routes>
       </main>
       <footer className="mt-12 border-t border-stone-200 bg-white">
