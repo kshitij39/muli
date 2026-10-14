@@ -1,5 +1,6 @@
-import { Link } from 'react-router'
+import { Link, Navigate } from 'react-router'
 import PageTop from '../components/PageTop.jsx'
+import { HOME } from '../modes.js'
 
 const CIVIC = [
   'See health posts, toilets, schools and more near you',
@@ -37,7 +38,9 @@ function Side({ mode, title, who, things }) {
   )
 }
 
-function Home() {
+function Home({ me }) {
+  if (me) return <Navigate to={HOME[me.mode]} replace />
+
   return (
     <>
       <PageTop
