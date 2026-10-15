@@ -1,6 +1,7 @@
+import functools
 import re
 
-from flask import Blueprint, request, session
+from flask import Blueprint, g, request, session
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from .db import get_db
@@ -52,6 +53,23 @@ def signed_in_user():
     if "user_id" not in session:
         return None
     return get_db().execute("SELECT * FROM users WHERE id = ?", (session["user_id"],)).fetchone()
+
+
+def login_required(mode=None):
+    def decorator(view):
+        @functools.wraps(view)
+        def wrapped(**kwargs):
+            user = signed_in_user()
+            if not user:
+                return {"error": "Sign in first."}, 401
+            if mode and user["mode"] != mode:
+                return {"error": f"Only {MODES[mode]} accounts can do that."}, 403
+            g.user = user
+            return view(**kwargs)
+
+        return wrapped
+
+    return decorator
 
 
 @bp.post("/session")

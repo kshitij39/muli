@@ -3,6 +3,7 @@ import math
 
 from flask import Blueprint, abort, request, send_from_directory
 
+from .accounts import login_required
 from .db import DATA, get_db
 
 bp = Blueprint("places", __name__, url_prefix="/api")
@@ -50,12 +51,14 @@ def numbers(text, count):
 
 
 @bp.get("/layers")
+@login_required()
 def layers():
     counts = dict(get_db().execute("SELECT layer, COUNT(*) FROM places WHERE rough < 2 GROUP BY layer").fetchall())
     return [{**layer, "count": counts.get(layer["key"], 0)} for layer in LAYERS]
 
 
 @bp.get("/places")
+@login_required()
 def places():
     known = {layer["key"] for layer in LAYERS}
     chosen = [key for key in request.args.get("layers", "").split(",") if key in known]
@@ -91,6 +94,7 @@ def places():
 
 
 @bp.get("/outlines/<name>")
+@login_required()
 def outlines(name):
     if name not in ("wards", "slums"):
         abort(404)
