@@ -3,7 +3,7 @@ from pathlib import Path
 
 from flask import Flask
 
-from . import accounts, db, places
+from . import accounts, db, places, wards
 
 
 def create_app():
@@ -13,6 +13,7 @@ def create_app():
     Path(app.instance_path).mkdir(exist_ok=True)
 
     db.init_app(app)
+    app.cli.add_command(wards.wards_command)
     app.register_blueprint(places.bp)
     app.register_blueprint(accounts.bp)
 
