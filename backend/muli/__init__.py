@@ -16,6 +16,7 @@ def create_app():
     app.cli.add_command(wards.wards_command)
     app.register_blueprint(places.bp)
     app.register_blueprint(accounts.bp)
+    app.register_blueprint(wards.bp)
 
     @app.get("/api/health")
     def health():
