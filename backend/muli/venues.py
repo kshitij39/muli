@@ -1,4 +1,7 @@
-from .db import get_db
+import json
+
+from .db import DATA, get_db
+from .places import distance_km
 
 SCHOOLS = ["municipal", "aided", "unaided"]
 GROUPS = {
@@ -22,3 +25,28 @@ def venue_groups(category, ward):
 
 def venues_in_order(category, ward):
     return [row for group in venue_groups(category, ward) for row in group]
+
+
+def ward_middles():
+    with open(DATA / "wards.geojson", encoding="utf-8") as f:
+        return {feature["properties"]["code"]: feature["properties"]["middle"] for feature in json.load(f)["features"]}
+
+
+MIDDLES = ward_middles()
+
+
+def suggested_venues(category, ward):
+    lat, lon = MIDDLES[ward]
+    picked = []
+    for group in venue_groups(category, ward):
+        left = list(group)
+        while len(picked) < 3 and left:
+            if not picked:
+                best = min(left, key=lambda p: distance_km(lat, lon, p["lat"], p["lon"]))
+            else:
+                best = max(left, key=lambda p: min(distance_km(p["lat"], p["lon"], q["lat"], q["lon"]) for q in picked))
+            picked.append(best)
+            left.remove(best)
+        if len(picked) == 3:
+            break
+    return picked
