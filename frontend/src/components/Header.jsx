@@ -2,8 +2,11 @@ import { Link, NavLink } from 'react-router'
 import { HOME, MODES } from '../modes.js'
 
 const MENUS = {
-  civic: [['/near', 'Near me']],
-  ngo: [],
+  civic: [
+    ['/near', 'Near me'],
+    ['/wards', 'Ward map'],
+  ],
+  ngo: [['/wards', 'Ward map']],
 }
 
 function Header({ me }) {

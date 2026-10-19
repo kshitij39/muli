@@ -8,6 +8,7 @@ import NearMe from './pages/NearMe.jsx'
 import Profile from './pages/Profile.jsx'
 import SignIn from './pages/SignIn.jsx'
 import SignUp from './pages/SignUp.jsx'
+import WardMap from './pages/WardMap.jsx'
 
 function App() {
   const [me, setMe] = useState(undefined)
@@ -29,6 +30,14 @@ function App() {
             element={
               <Only me={me} mode="civic">
                 <NearMe />
+              </Only>
+            }
+          />
+          <Route
+            path="/wards"
+            element={
+              <Only me={me}>
+                <WardMap />
               </Only>
             }
           />
