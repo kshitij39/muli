@@ -1,3 +1,3 @@
 export const MODES = { civic: 'Civic', ngo: 'NGO' }
 
-export const HOME = { civic: '/near', ngo: '/profile' }
+export const HOME = { civic: '/near', ngo: '/wards' }

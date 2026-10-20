@@ -1,8 +1,43 @@
 export const CATEGORIES = {
-  health: { name: 'Health', color: '#0f766e' },
-  education: { name: 'Education', color: '#1d4ed8' },
-  sanitation: { name: 'Sanitation', color: '#b45309' },
+  health: {
+    name: 'Health',
+    color: '#0f766e',
+    shades: ['#0f766e', '#5eead4', '#ccfbf1'],
+    per: 'health post or dispensary',
+    counting: 'health posts and dispensaries',
+  },
+  education: {
+    name: 'Education',
+    color: '#1d4ed8',
+    shades: ['#1d4ed8', '#93c5fd', '#dbeafe'],
+    per: 'school',
+    counting: 'schools',
+  },
+  sanitation: {
+    name: 'Sanitation',
+    color: '#b45309',
+    shades: ['#b45309', '#fbbf24', '#fef3c7'],
+    per: 'public toilet',
+    counting: 'public toilets',
+  },
   city: { name: 'City', color: '#57534e' },
+}
+
+export const EVENT_CATEGORIES = ['health', 'sanitation', 'education']
+
+export const BANDS = ['Poorly served', 'Average', 'Well served']
+
+export function roughly(n) {
+  const step = n < 100 ? 5 : n < 1000 ? 10 : n < 10000 ? 100 : 1000
+  return (Math.round(n / step) * step).toLocaleString('en-IN')
+}
+
+export function numberText(category, peoplePer) {
+  return `1 ${CATEGORIES[category].per} for every ${roughly(peoplePer)} people`
+}
+
+export function usualText(usual) {
+  return `Across the city it's usually about 1 for every ${roughly(usual)}.`
 }
 
 export const GOVANDI_STATION = { lat: 19.05509, lon: 72.91539 }

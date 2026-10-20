@@ -1,14 +1,7 @@
 import 'leaflet/dist/leaflet.css'
 import { useEffect, useState } from 'react'
 import { GeoJSON, MapContainer, Pane, TileLayer, useMap, useMapEvents } from 'react-leaflet'
-import { api } from '../api.js'
-
-const outlines = {}
-
-function loadOutlines(name) {
-  outlines[name] ??= api(`/api/outlines/${name}`)
-  return outlines[name]
-}
+import { loadOutlines } from '../outlines.js'
 
 function Fit({ bounds }) {
   const map = useMap()
