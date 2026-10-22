@@ -145,6 +145,34 @@
     color: #1c1917;
   }
 
+  .option {
+    display: flex;
+    gap: 0.625rem;
+    align-items: flex-start;
+    padding: 0.625rem 0.75rem;
+    border: 1px solid #d6d3d1;
+    border-radius: 4px;
+    background: #fff;
+    cursor: pointer;
+  }
+
+  .option:hover {
+    border-color: #a8a29e;
+  }
+
+  .option:has(input:checked) {
+    border-color: #1c1917;
+    background: #fffbea;
+  }
+
+  .option input {
+    flex: none;
+    width: 1rem;
+    height: 1rem;
+    margin-top: 0.2rem;
+    accent-color: #1c1917;
+  }
+
   .btn {
     display: inline-flex;
     gap: 0.5rem;
