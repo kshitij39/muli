@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS events;
 DROP TABLE IF EXISTS places;
 DROP TABLE IF EXISTS wards;
 
@@ -29,5 +30,21 @@ CREATE TABLE users (
   name TEXT NOT NULL,
   mode TEXT NOT NULL,
   ngo_name TEXT,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE events (
+  id INTEGER PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users (id),
+  category TEXT NOT NULL,
+  kind TEXT NOT NULL,
+  title TEXT NOT NULL,
+  about TEXT NOT NULL,
+  ward TEXT NOT NULL,
+  place_id INTEGER NOT NULL REFERENCES places (id),
+  starts_at TEXT NOT NULL,
+  hours INTEGER NOT NULL,
+  places INTEGER NOT NULL,
+  volunteers INTEGER NOT NULL,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
