@@ -6,7 +6,10 @@ const MENUS = {
     ['/near', 'Near me'],
     ['/wards', 'Ward map'],
   ],
-  ngo: [['/wards', 'Ward map']],
+  ngo: [
+    ['/plan', 'Plan an event'],
+    ['/wards', 'Ward map'],
+  ],
 }
 
 function Header({ me }) {
