@@ -1,7 +1,12 @@
-import { useState } from 'react'
+import L from 'leaflet'
+import { useEffect, useMemo, useState } from 'react'
+import { api } from '../api.js'
+import MapView from '../components/MapView.jsx'
 import PageTop from '../components/PageTop.jsx'
+import WardShades from '../components/WardShades.jsx'
 import { CUSTOM, EVENT_KINDS } from '../kinds.js'
-import { CATEGORIES, EVENT_CATEGORIES } from '../places.js'
+import { loadOutlines } from '../outlines.js'
+import { CATEGORIES, EVENT_CATEGORIES, numberText, usualText } from '../places.js'
 
 const BLURB = {
   health: 'Check-up camps and vaccination awareness',
@@ -12,11 +17,28 @@ const BLURB = {
 function Plan() {
   const [category, setCategory] = useState(null)
   const [kind, setKind] = useState(null)
+  const [wards, setWards] = useState(null)
+  const [ward, setWard] = useState(null)
+  const [outlines, setOutlines] = useState(null)
+
+  useEffect(() => {
+    loadOutlines('wards').then(setOutlines)
+  }, [])
+
+  useEffect(() => {
+    if (category) api(`/api/wards?category=${category}`).then(setWards)
+  }, [category])
+
+  const bounds = useMemo(() => (outlines ? L.geoJSON(outlines).getBounds() : null), [outlines])
 
   function chooseCategory(key) {
     setCategory(key)
     setKind(null)
+    setWard(null)
   }
+
+  const wardsReady = kind && wards?.category === category
+  const byCode = wardsReady ? Object.fromEntries(wards.wards.map((w) => [w.code, w])) : {}
 
   return (
     <>
@@ -68,6 +90,56 @@ function Plan() {
             </div>
           )}
         </section>
+
+        {kind && !wardsReady && <p className="text-stone-600">Finding wards for a {CATEGORIES[category].name.toLowerCase()} event...</p>}
+        {wardsReady && (
+          <section className="panel">
+            <div className="panel-head">
+              <h2>2. Choose a ward</h2>
+              <span className="text-sm text-stone-500">Darker wards have more people per {CATEGORIES[category].per}</span>
+            </div>
+            <div className="grid lg:grid-cols-5">
+              <div className="border-b border-stone-200 lg:col-span-3 lg:border-r lg:border-b-0">
+                <MapView bounds={bounds} showWards={false} className="h-80 rounded-none border-0 sm:h-96 lg:h-[30rem]">
+                  {outlines && <WardShades outlines={outlines} data={wards} chosen={ward} onPick={setWard} />}
+                </MapView>
+              </div>
+              <div className="lg:col-span-2">
+                <div className="flex items-center justify-between gap-3 border-b border-stone-200 px-4 py-2.5">
+                  <span className="tag tag-suggested">Suggested</span>
+                  <span className="text-sm text-stone-500">{usualText(wards.usual)}</span>
+                </div>
+                <ul className="divide-y divide-stone-200">
+                  {wards.suggested.map((code) => (
+                    <li key={code} className={`flex items-start justify-between gap-3 px-4 py-3 ${code === ward ? 'bg-amber-50' : ''}`}>
+                      <div>
+                        <div className="font-semibold">
+                          {code} ward ({byCode[code].areas})
+                        </div>
+                        <div className="text-sm text-stone-600">{numberText(category, byCode[code].people_per)}.</div>
+                      </div>
+                      <button type="button" className="btn btn-sm shrink-0" onClick={() => setWard(code)}>
+                        {code === ward ? 'Chosen' : 'Choose'}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+                <div className="border-t border-stone-200 px-4 py-3 text-sm">
+                  {ward && !wards.suggested.includes(ward) ? (
+                    <p>
+                      <b className="font-semibold">
+                        Chosen: {ward} ward ({byCode[ward].areas}).
+                      </b>{' '}
+                      {numberText(category, byCode[ward].people_per)}.
+                    </p>
+                  ) : (
+                    <p className="text-stone-600">Or click any ward on the map.</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
       </div>
     </>
   )

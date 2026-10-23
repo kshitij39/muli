@@ -195,6 +195,12 @@
     background: #f5f5f4;
   }
 
+  .btn-sm {
+    height: 2rem;
+    padding: 0 0.75rem;
+    font-size: 0.875rem;
+  }
+
   .btn-primary {
     border-color: #d9a900;
     background: #ffd23f;
