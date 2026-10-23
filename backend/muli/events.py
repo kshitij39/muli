@@ -25,8 +25,22 @@ def event_dict(row):
     event = {key: row[key] for key in ["id", "category", "kind", "title", "about", "ward", "starts_at", "hours", "places", "volunteers"]}
     event["organisation"] = row["ngo_name"]
     event["mine"] = row["user_id"] == g.user["id"]
-    venue = get_db().execute("SELECT * FROM places WHERE id = ?", (row["place_id"],)).fetchone()
+    db = get_db()
+    venue = db.execute("SELECT * FROM places WHERE id = ?", (row["place_id"],)).fetchone()
     event["venue"] = place_dict(venue)
+    counts = dict(db.execute("SELECT role, COUNT(*) FROM signups WHERE event_id = ? GROUP BY role", (row["id"],)).fetchall())
+    event["attending"] = counts.get("attend", 0)
+    event["volunteering"] = counts.get("volunteer", 0)
+    mine = db.execute("SELECT role FROM signups WHERE event_id = ? AND user_id = ?", (row["id"], g.user["id"])).fetchone()
+    event["my_signup"] = mine["role"] if mine else None
+    event["past"] = row["starts_at"] <= now()
+    if event["mine"]:
+        people = db.execute(
+            "SELECT users.name, signups.role FROM signups JOIN users ON users.id = signups.user_id"
+            " WHERE event_id = ? ORDER BY signups.created_at",
+            (row["id"],),
+        )
+        event["people"] = [dict(person) for person in people]
     return event
 
 
@@ -106,3 +120,39 @@ def publish():
     )
     db.commit()
     return event_dict(find_event(cursor.lastrowid)), 201
+
+
+@bp.post("/events/<int:event_id>/signup")
+@login_required("civic")
+def sign_up(event_id):
+    row = find_event(event_id)
+    if not row:
+        return {"error": "Event not found. It may have been taken down."}, 404
+    role = (request.get_json(silent=True) or {}).get("role")
+    if role not in ("attend", "volunteer"):
+        return {"error": "Choose attend or volunteer."}, 400
+    event = event_dict(row)
+    if event["past"]:
+        return {"error": "This event has already happened."}, 400
+    if event["my_signup"]:
+        return {"error": "You're already signed up. Cancel first to change."}, 400
+    if role == "attend" and event["attending"] >= event["places"]:
+        return {"error": "Sorry, it's full."}, 400
+    if role == "volunteer" and event["volunteering"] >= event["volunteers"]:
+        return {"error": "They have all the volunteers they need."}, 400
+    db = get_db()
+    db.execute("INSERT INTO signups (event_id, user_id, role) VALUES (?, ?, ?)", (event_id, g.user["id"], role))
+    db.commit()
+    return event_dict(row)
+
+
+@bp.delete("/events/<int:event_id>/signup")
+@login_required("civic")
+def cancel(event_id):
+    row = find_event(event_id)
+    if not row:
+        return {"error": "Event not found. It may have been taken down."}, 404
+    db = get_db()
+    db.execute("DELETE FROM signups WHERE event_id = ? AND user_id = ?", (event_id, g.user["id"]))
+    db.commit()
+    return event_dict(row)

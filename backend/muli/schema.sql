@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS signups;
 DROP TABLE IF EXISTS events;
 DROP TABLE IF EXISTS places;
 DROP TABLE IF EXISTS wards;
@@ -47,4 +48,12 @@ CREATE TABLE events (
   places INTEGER NOT NULL,
   volunteers INTEGER NOT NULL,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE signups (
+  event_id INTEGER NOT NULL REFERENCES events (id),
+  user_id INTEGER NOT NULL REFERENCES users (id),
+  role TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (event_id, user_id)
 );
