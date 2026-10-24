@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { api } from '../api.js'
 import MapView from '../components/MapView.jsx'
 import PageTop from '../components/PageTop.jsx'
+import VenueStep from '../components/VenueStep.jsx'
 import WardShades from '../components/WardShades.jsx'
 import { CUSTOM, EVENT_KINDS } from '../kinds.js'
 import { loadOutlines } from '../outlines.js'
@@ -20,6 +21,7 @@ function Plan() {
   const [wards, setWards] = useState(null)
   const [ward, setWard] = useState(null)
   const [outlines, setOutlines] = useState(null)
+  const [venue, setVenue] = useState(null)
 
   useEffect(() => {
     loadOutlines('wards').then(setOutlines)
@@ -35,6 +37,12 @@ function Plan() {
     setCategory(key)
     setKind(null)
     setWard(null)
+    setVenue(null)
+  }
+
+  function chooseWard(code) {
+    setWard(code)
+    setVenue(null)
   }
 
   const wardsReady = kind && wards?.category === category
@@ -101,7 +109,7 @@ function Plan() {
             <div className="grid lg:grid-cols-5">
               <div className="border-b border-stone-200 lg:col-span-3 lg:border-r lg:border-b-0">
                 <MapView bounds={bounds} showWards={false} className="h-80 rounded-none border-0 sm:h-96 lg:h-[30rem]">
-                  {outlines && <WardShades outlines={outlines} data={wards} chosen={ward} onPick={setWard} />}
+                  {outlines && <WardShades outlines={outlines} data={wards} chosen={ward} onPick={chooseWard} />}
                 </MapView>
               </div>
               <div className="lg:col-span-2">
@@ -118,7 +126,7 @@ function Plan() {
                         </div>
                         <div className="text-sm text-stone-600">{numberText(category, byCode[code].people_per)}.</div>
                       </div>
-                      <button type="button" className="btn btn-sm shrink-0" onClick={() => setWard(code)}>
+                      <button type="button" className="btn btn-sm shrink-0" onClick={() => chooseWard(code)}>
                         {code === ward ? 'Chosen' : 'Choose'}
                       </button>
                     </li>
@@ -139,6 +147,10 @@ function Plan() {
               </div>
             </div>
           </section>
+        )}
+
+        {wardsReady && ward && outlines && (
+          <VenueStep key={`${category}-${ward}`} category={category} ward={ward} outlines={outlines} venue={venue} onChoose={setVenue} />
         )}
       </div>
     </>
