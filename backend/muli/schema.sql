@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS reports;
 DROP TABLE IF EXISTS signups;
 DROP TABLE IF EXISTS events;
 DROP TABLE IF EXISTS places;
@@ -56,4 +57,21 @@ CREATE TABLE signups (
   role TEXT NOT NULL,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (event_id, user_id)
+);
+
+CREATE TABLE reports (
+  id INTEGER PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users (id),
+  category TEXT NOT NULL,
+  what_wrong TEXT NOT NULL,
+  photo TEXT,
+  lat REAL NOT NULL,
+  lon REAL NOT NULL,
+  ward TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'waiting',
+  reject_reason TEXT,
+  reject_text TEXT,
+  decided_by INTEGER REFERENCES users (id),
+  decided_at TEXT,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
