@@ -5,10 +5,12 @@ const MENUS = {
   civic: [
     ['/near', 'Near me'],
     ['/wards', 'Ward map'],
+    ['/events', 'Events'],
   ],
   ngo: [
     ['/plan', 'Plan an event'],
     ['/wards', 'Ward map'],
+    ['/events', 'Events'],
   ],
 }
 
