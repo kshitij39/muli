@@ -3,6 +3,7 @@ import { Route, Routes } from 'react-router'
 import { api } from './api.js'
 import Header from './components/Header.jsx'
 import Only from './components/Only.jsx'
+import Event from './pages/Event.jsx'
 import Events from './pages/Events.jsx'
 import Home from './pages/Home.jsx'
 import NearMe from './pages/NearMe.jsx'
@@ -48,6 +49,14 @@ function App() {
             element={
               <Only me={me}>
                 <Events me={me} />
+              </Only>
+            }
+          />
+          <Route
+            path="/events/:id"
+            element={
+              <Only me={me}>
+                <Event />
               </Only>
             }
           />
