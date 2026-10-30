@@ -6,6 +6,7 @@ from flask import Blueprint, g, request
 from .accounts import login_required
 from .db import get_db
 from .places import place_dict
+from .reports import REPORTS, report_dict
 from .venues import GROUPS
 
 bp = Blueprint("events", __name__, url_prefix="/api")
@@ -156,3 +157,18 @@ def cancel(event_id):
     db.execute("DELETE FROM signups WHERE event_id = ? AND user_id = ?", (event_id, g.user["id"]))
     db.commit()
     return event_dict(row)
+
+
+@bp.get("/me/activity")
+@login_required()
+def activity():
+    db = get_db()
+    if g.user["mode"] == "ngo":
+        rows = db.execute(EVENTS + " WHERE user_id = ? AND starts_at > ? ORDER BY starts_at", (g.user["id"], now()))
+        return {"events": [event_dict(row) for row in rows]}
+    signed_up = db.execute(
+        EVENTS + " JOIN signups ON signups.event_id = events.id WHERE signups.user_id = ? AND starts_at > ? ORDER BY starts_at",
+        (g.user["id"], now()),
+    )
+    reports = db.execute(REPORTS + " WHERE user_id = ? ORDER BY reports.created_at DESC, reports.id DESC", (g.user["id"],))
+    return {"signups": [event_dict(row) for row in signed_up], "reports": [report_dict(row) for row in reports]}
