@@ -1,6 +1,7 @@
 import L from 'leaflet'
 import { useEffect, useMemo, useState } from 'react'
 import { api } from '../api.js'
+import EventForm from '../components/EventForm.jsx'
 import MapView from '../components/MapView.jsx'
 import PageTop from '../components/PageTop.jsx'
 import VenueStep from '../components/VenueStep.jsx'
@@ -152,6 +153,8 @@ function Plan() {
         {wardsReady && ward && outlines && (
           <VenueStep key={`${category}-${ward}`} category={category} ward={ward} outlines={outlines} venue={venue} onChoose={setVenue} />
         )}
+
+        {wardsReady && ward && venue && <EventForm key={`${kind.key}-${venue.id}`} category={category} kind={kind} venue={venue} />}
       </div>
     </>
   )
