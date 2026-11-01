@@ -56,7 +56,7 @@ function App() {
             path="/events/:id"
             element={
               <Only me={me}>
-                <Event />
+                <Event me={me} />
               </Only>
             }
           />
