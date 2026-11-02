@@ -6,6 +6,7 @@ const MENUS = {
     ['/near', 'Near me'],
     ['/wards', 'Ward map'],
     ['/events', 'Events'],
+    ['/report', 'Report a problem'],
   ],
   ngo: [
     ['/plan', 'Plan an event'],
