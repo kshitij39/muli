@@ -114,6 +114,19 @@
     border-radius: 2px;
   }
 
+  input[type='file']::file-selector-button {
+    height: 2rem;
+    margin-right: 0.75rem;
+    padding: 0 0.75rem;
+    border: 1px solid #d6d3d1;
+    border-radius: 4px;
+    background: #fff;
+    color: #1c1917;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
   .label {
     display: block;
     margin-bottom: 0.375rem;
