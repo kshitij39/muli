@@ -10,6 +10,7 @@ import NearMe from './pages/NearMe.jsx'
 import Plan from './pages/Plan.jsx'
 import Profile from './pages/Profile.jsx'
 import Report from './pages/Report.jsx'
+import Reports from './pages/Reports.jsx'
 import SignIn from './pages/SignIn.jsx'
 import SignUp from './pages/SignUp.jsx'
 import WardMap from './pages/WardMap.jsx'
@@ -66,6 +67,14 @@ function App() {
             element={
               <Only me={me} mode="civic">
                 <Report />
+              </Only>
+            }
+          />
+          <Route
+            path="/reports"
+            element={
+              <Only me={me} mode="ngo">
+                <Reports />
               </Only>
             }
           />

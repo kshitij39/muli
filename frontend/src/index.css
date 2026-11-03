@@ -186,6 +186,37 @@
     accent-color: #1c1917;
   }
 
+  .tag-good {
+    border-color: #bbf7d0;
+    background: #f0fdf4;
+    color: #166534;
+  }
+
+  .tag-plain {
+    border-color: #e7e5e4;
+    background: #fafaf9;
+    color: #57534e;
+  }
+
+  .num {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 3px;
+    background: #1c1917;
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+
+  .num.picked {
+    background: #ffd23f;
+    color: #1c1917;
+  }
+
   .btn {
     display: inline-flex;
     gap: 0.5rem;
