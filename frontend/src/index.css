@@ -186,6 +186,12 @@
     accent-color: #1c1917;
   }
 
+  .tag-warn {
+    border-color: #fcd34d;
+    background: #fffbeb;
+    color: #92400e;
+  }
+
   .tag-good {
     border-color: #bbf7d0;
     background: #f0fdf4;
