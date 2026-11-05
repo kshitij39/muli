@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
 import { api } from '../api.js'
 import CategoryTag from '../components/CategoryTag.jsx'
+import LoadingPanel from '../components/LoadingPanel.jsx'
 import PageTop from '../components/PageTop.jsx'
 import { dayText, timeText } from '../dates.js'
 import { CATEGORIES, EVENT_CATEGORIES } from '../places.js'
@@ -52,7 +53,7 @@ function Events({ me }) {
               </select>
             </div>
           </div>
-          {!events && <p className="px-4 py-3 text-stone-600">Loading events...</p>}
+          {!events && <LoadingPanel title="Loading events" className="rounded-none border-0" />}
           {events?.length === 0 && <p className="px-4 py-3 text-stone-600">Nothing like that planned yet.</p>}
           {events?.length > 0 && (
             <ul className="divide-y divide-stone-200">

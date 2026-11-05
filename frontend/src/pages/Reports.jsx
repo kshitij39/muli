@@ -4,6 +4,7 @@ import { Marker } from 'react-leaflet'
 import { api } from '../api.js'
 import CategoryTag from '../components/CategoryTag.jsx'
 import MapView from '../components/MapView.jsx'
+import LoadingPanel from '../components/LoadingPanel.jsx'
 import PageTop from '../components/PageTop.jsx'
 import { agoText } from '../dates.js'
 import { loadOutlines } from '../outlines.js'
@@ -186,7 +187,11 @@ function Reports() {
             </MapView>
           </div>
           <ul className="panel divide-y divide-stone-200 lg:order-1 lg:col-span-3">
-            {!reports && <li className="p-4 text-stone-600">Loading reports...</li>}
+            {!reports && (
+              <li>
+                <LoadingPanel title="Loading reports" className="border-0" />
+              </li>
+            )}
             {reports && !shown.length && (
               <li className="p-4 text-stone-600">{tab === 'waiting' ? 'Nothing waiting to be checked.' : 'No checked reports yet.'}</li>
             )}

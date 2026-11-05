@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { api } from '../api.js'
 import CategoryTag from '../components/CategoryTag.jsx'
+import LoadingPanel from '../components/LoadingPanel.jsx'
 import PageTop from '../components/PageTop.jsx'
 import { longDayText, timeText } from '../dates.js'
 import { kindName } from '../kinds.js'
@@ -84,7 +85,13 @@ function Event({ me }) {
       </>
     )
   }
-  if (!event || !layers) return <p className="mx-auto max-w-6xl px-4 py-6 text-stone-600 sm:px-6">Loading the event...</p>
+  if (!event || !layers) {
+    return (
+      <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
+        <LoadingPanel title="Loading the event" />
+      </div>
+    )
+  }
 
   const venue = event.venue
   const kind = layers[venue.layer].one

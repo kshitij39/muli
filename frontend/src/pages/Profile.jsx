@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router'
 import { api } from '../api.js'
 import CategoryTag from '../components/CategoryTag.jsx'
+import LoadingPanel from '../components/LoadingPanel.jsx'
 import PageTop from '../components/PageTop.jsx'
 import { agoText, dayText, timeText } from '../dates.js'
 import { MODES } from '../modes.js'
@@ -172,7 +173,11 @@ function Profile({ me, setMe }) {
           Sign out
         </button>
       </PageTop>
-      {!activity && <p className="mx-auto max-w-6xl px-4 py-6 text-stone-600 sm:px-6">Loading...</p>}
+      {!activity && (
+        <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
+          <LoadingPanel title={me.mode === 'ngo' ? "Loading your NGO's events" : 'Loading your events and reports'} />
+        </div>
+      )}
       {activity && me.mode === 'civic' && <CivicActivity activity={activity} onCancel={cancel} />}
       {activity && me.mode === 'ngo' && <NgoActivity activity={activity} />}
     </>
