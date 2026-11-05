@@ -223,6 +223,24 @@
     color: #1c1917;
   }
 
+  .loading-bar {
+    position: relative;
+    height: 3px;
+    overflow: hidden;
+    background: #f5f5f4;
+  }
+
+  .loading-bar::before {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 30%;
+    background: #e0b000;
+    content: '';
+    animation: loading 1.2s ease-in-out infinite;
+  }
+
   .btn {
     display: inline-flex;
     gap: 0.5rem;
@@ -344,4 +362,21 @@
 .drop-pin svg {
   display: block;
   filter: drop-shadow(0 1px 1.5px rgb(0 0 0 / 0.45));
+}
+
+@keyframes loading {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(340%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loading-bar::before {
+    width: 100%;
+    opacity: 0.5;
+    animation: none;
+  }
 }

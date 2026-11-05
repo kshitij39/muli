@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { api } from '../api.js'
 import EventForm from '../components/EventForm.jsx'
 import MapView from '../components/MapView.jsx'
+import LoadingPanel from '../components/LoadingPanel.jsx'
 import PageTop from '../components/PageTop.jsx'
 import VenueStep from '../components/VenueStep.jsx'
 import WardShades from '../components/WardShades.jsx'
@@ -100,7 +101,15 @@ function Plan() {
           )}
         </section>
 
-        {kind && !wardsReady && <p className="text-stone-600">Finding wards for a {CATEGORIES[category].name.toLowerCase()} event...</p>}
+        {kind && !wardsReady && (
+          <LoadingPanel
+            title={`Finding wards for ${category === 'education' ? 'an' : 'a'} ${CATEGORIES[category].name.toLowerCase()} event`}
+            lines={[
+              `Counting ${CATEGORIES[category].counting} in each of the 24 wards`,
+              'Comparing them with how many people live in each ward (BMC, mid-year 2023)',
+            ]}
+          />
+        )}
         {wardsReady && (
           <section className="panel">
             <div className="panel-head">

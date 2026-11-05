@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Circle, CircleMarker, Marker } from 'react-leaflet'
 import { api } from '../api.js'
 import MapView from '../components/MapView.jsx'
+import LoadingPanel from '../components/LoadingPanel.jsx'
 import PageTop from '../components/PageTop.jsx'
 import PlaceDot from '../components/PlaceDot.jsx'
 import { BLOCKED, findMe, locationPermission, savedSpot, saveSpot } from '../location.js'
@@ -259,7 +260,17 @@ function NearMe() {
             </MapView>
           </div>
           <section className="panel lg:order-1 lg:col-span-2">
-            {!spot && (
+            {!spot && finding && (
+              <LoadingPanel
+                title="Finding where you are"
+                className="border-0"
+                lines={[
+                  'Your browser is working out where you are. On a laptop this can take up to half a minute.',
+                  'In a hurry? Click the map where you are.',
+                ]}
+              />
+            )}
+            {!spot && !finding && (
               <div className="p-4 text-stone-600">
                 <p>Use your location, or click the map where you are, to see what's around you.</p>
                 <p className="mt-2 text-sm">
@@ -272,7 +283,17 @@ function NearMe() {
               </div>
             )}
             {spot && !enabled.length && <p className="p-4 text-stone-600">Choose at least one kind of place to show.</p>}
-            {spot && enabled.length > 0 && !shown && <p className="p-4 text-stone-600">Finding places near you...</p>}
+            {spot && enabled.length > 0 && !shown && (
+              <LoadingPanel
+                title="Finding places near you"
+                className="border-0"
+                lines={[
+                  `Measuring the walk from ${spot.gps ? 'you' : 'that spot'} to every place in the ${enabled.length} ${
+                    enabled.length === 1 ? 'kind' : 'kinds'
+                  } you've chosen, within ${DISTANCES[km]}`,
+                ]}
+              />
+            )}
             {spot && enabled.length > 0 && shown?.length === 0 && (
               <p className="p-4 text-stone-600">
                 None of the places you've chosen are within {DISTANCES[km]}. Try a bigger distance.
