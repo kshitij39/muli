@@ -11,6 +11,7 @@ const MENUS = {
   ngo: [
     ['/plan', 'Plan an event'],
     ['/wards', 'Ward map'],
+    ['/reports', 'Reports'],
     ['/events', 'Events'],
   ],
 }

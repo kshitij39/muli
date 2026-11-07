@@ -2,6 +2,7 @@ import L from 'leaflet'
 import { useEffect, useMemo, useState } from 'react'
 import { api } from '../api.js'
 import MapView from '../components/MapView.jsx'
+import LoadingPanel from '../components/LoadingPanel.jsx'
 import PageTop from '../components/PageTop.jsx'
 import WardShades from '../components/WardShades.jsx'
 import { loadOutlines } from '../outlines.js'
@@ -133,7 +134,12 @@ function WardMap() {
           </div>
 
           <div className="grid content-start gap-6 lg:col-span-2">
-            {!ready && <p className="text-stone-600">Counting {c.counting} in each ward...</p>}
+            {!ready && (
+              <LoadingPanel
+                title={`Counting ${c.counting} in each ward`}
+                lines={[`Comparing each of the 24 wards' ${c.counting} with how many people live there`]}
+              />
+            )}
             {ready && chosen && <Details ward={chosen} category={category} onClose={() => setChosen(null)} />}
             {ready && !chosen && (
               <>

@@ -4,6 +4,7 @@ import { GeoJSON, Marker } from 'react-leaflet'
 import { api } from '../api.js'
 import { CATEGORIES, placeDetails } from '../places.js'
 import { dropPin, suggestedPin } from '../pins.js'
+import LoadingPanel from './LoadingPanel.jsx'
 import MapView from './MapView.jsx'
 import PlaceDot from './PlaceDot.jsx'
 import PlacePopup from './PlacePopup.jsx'
@@ -35,7 +36,17 @@ function VenueStep({ category, ward, outlines, venue, onChoose }) {
   )
   const bounds = useMemo(() => L.geoJSON(wardShape).getBounds(), [wardShape])
 
-  if (!data || !layers) return <p className="text-stone-600">Finding venues in {ward} ward...</p>
+  if (!data || !layers) {
+    return (
+      <LoadingPanel
+        title={`Finding venues in ${ward} ward`}
+        lines={[
+          `Listing the places in ${ward} ward that suit ${category === 'education' ? 'an' : 'a'} ${CATEGORIES[category].name.toLowerCase()} event`,
+          `Picking 3 ${FIRST[category]} spread across the ward`,
+        ]}
+      />
+    )
+  }
 
   const suggested = data.venues.filter((place) => data.suggested.includes(place.id))
   const others = data.venues.filter((place) => !data.suggested.includes(place.id))
