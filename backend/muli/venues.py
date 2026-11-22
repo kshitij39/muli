@@ -1,7 +1,12 @@
 import json
 
+from flask import Blueprint, request
+
+from .accounts import login_required
 from .db import DATA, get_db
-from .places import distance_km
+from .places import distance_km, place_dict
+
+bp = Blueprint("venues", __name__, url_prefix="/api")
 
 SCHOOLS = ["municipal", "aided", "unaided"]
 GROUPS = {
@@ -50,3 +55,16 @@ def suggested_venues(category, ward):
         if len(picked) == 3:
             break
     return picked
+
+
+@bp.get("/venues")
+@login_required("ngo")
+def venues():
+    category = request.args.get("category")
+    ward = request.args.get("ward")
+    if category not in GROUPS or ward not in MIDDLES:
+        return {"error": "Choose a category and a ward."}, 400
+    return {
+        "venues": [place_dict(row) for row in venues_in_order(category, ward)],
+        "suggested": [row["id"] for row in suggested_venues(category, ward)],
+    }
