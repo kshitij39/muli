@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Route, Routes } from 'react-router'
 import { api } from './api.js'
 import Header from './components/Header.jsx'
+import Only from './components/Only.jsx'
 import Home from './pages/Home.jsx'
 import NearMe from './pages/NearMe.jsx'
 import Profile from './pages/Profile.jsx'
@@ -22,8 +23,15 @@ function App() {
       <Header me={me} />
       <main>
         <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/near" element={<NearMe />} />
+          <Route path="/" element={<Home me={me} />} />
+          <Route
+            path="/near"
+            element={
+              <Only me={me} mode="civic">
+                <NearMe />
+              </Only>
+            }
+          />
           <Route path="/signin" element={<SignIn me={me} setMe={setMe} />} />
           <Route path="/signup" element={<SignUp me={me} setMe={setMe} />} />
           <Route path="/profile" element={<Profile me={me} setMe={setMe} />} />

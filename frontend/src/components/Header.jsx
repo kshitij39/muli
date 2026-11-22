@@ -1,21 +1,35 @@
 import { Link, NavLink } from 'react-router'
+import { HOME, MODES } from '../modes.js'
+
+const MENUS = {
+  civic: [['/near', 'Near me']],
+  ngo: [],
+}
 
 function Header({ me }) {
+  const links = me ? MENUS[me.mode] : []
   return (
     <header className="bg-stone-900">
-      <div className="mx-auto flex h-14 max-w-6xl items-center gap-6 px-4 sm:px-6">
-        <Link to="/" className="logo">
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 px-4 sm:h-14 sm:flex-nowrap sm:px-6">
+        <Link to={me ? HOME[me.mode] : '/'} className="logo my-2.5 sm:my-0">
           MULI
         </Link>
-        <nav className="flex h-full gap-5 text-sm">
-          <NavLink to="/near" className="nav-link">
-            Near me
-          </NavLink>
-        </nav>
+        {links.length > 0 && (
+          <nav className="order-last -mx-4 flex w-[calc(100%+2rem)] gap-5 overflow-x-auto px-4 text-sm sm:order-none sm:mx-0 sm:h-full sm:w-auto sm:px-0">
+            {links.map(([to, text]) => (
+              <NavLink key={to} to={to} className="nav-link shrink-0 py-2.5 sm:py-0">
+                {text}
+              </NavLink>
+            ))}
+          </nav>
+        )}
         {me && (
-          <NavLink to="/profile" className="nav-link ml-auto h-full text-sm">
-            {me.mode === 'ngo' ? me.ngo_name : me.name}
-          </NavLink>
+          <div className="ml-auto flex items-baseline gap-2 text-sm">
+            <span className="text-stone-400">{MODES[me.mode]}</span>
+            <Link to="/profile" className="font-medium text-white no-underline hover:underline">
+              {me.mode === 'ngo' ? me.ngo_name : me.name}
+            </Link>
+          </div>
         )}
       </div>
     </header>
