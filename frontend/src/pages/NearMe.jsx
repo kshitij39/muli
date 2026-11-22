@@ -20,6 +20,8 @@ function NearMe() {
   const [cityWide, setCityWide] = useState([])
   const [zoomed, setZoomed] = useState([])
   const [view, setView] = useState(null)
+  const [showWards, setShowWards] = useState(true)
+  const [showSlums, setShowSlums] = useState(true)
   const [status, setStatus] = useState('')
   const map = useRef(null)
   const markers = useRef({})
@@ -150,6 +152,28 @@ function NearMe() {
                       <span className="text-stone-500 tabular-nums">{layer.count.toLocaleString('en-IN')}</span>
                     </label>
                   ))}
+                {category === 'city' && (
+                  <>
+                    <label className="flex items-center gap-2 py-0.5 text-sm">
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 accent-stone-900"
+                        checked={showWards}
+                        onChange={(event) => setShowWards(event.target.checked)}
+                      />
+                      Ward boundaries
+                    </label>
+                    <label className="flex items-center gap-2 py-0.5 text-sm">
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 accent-stone-900"
+                        checked={showSlums}
+                        onChange={(event) => setShowSlums(event.target.checked)}
+                      />
+                      Slum areas
+                    </label>
+                  </>
+                )}
               </fieldset>
             ))}
           </div>
@@ -161,6 +185,8 @@ function NearMe() {
               ref={map}
               bounds={bounds}
               onMove={moved}
+              showWards={showWards}
+              showSlums={showSlums}
               onClick={(clicked) => {
                 setStatus('Showing places near the spot you clicked.')
                 chooseSpot(clicked)
