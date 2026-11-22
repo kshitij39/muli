@@ -220,6 +220,11 @@
     background: #fff;
   }
 
+  textarea.input {
+    height: auto;
+    padding: 0.5rem 0.75rem;
+  }
+
   .input:focus {
     border-color: #1c1917;
     outline: none;
