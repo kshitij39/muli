@@ -74,8 +74,12 @@ function Events({ me }) {
                     </div>
                   </div>
                   <div className="col-start-2 text-sm sm:col-start-auto sm:text-right">
-                    <div>{event.places} places</div>
-                    <div className="text-stone-500">{event.volunteers} volunteers</div>
+                    <div>{event.places > event.attending ? `${event.places - event.attending} places left` : 'Full'}</div>
+                    <div className="text-stone-500">
+                      {event.volunteers > event.volunteering
+                        ? `${event.volunteers - event.volunteering} volunteers needed`
+                        : 'Enough volunteers'}
+                    </div>
                   </div>
                 </li>
               ))}
