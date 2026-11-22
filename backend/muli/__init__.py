@@ -3,7 +3,7 @@ from pathlib import Path
 
 from flask import Flask
 
-from . import accounts, db, places, venues, wards
+from . import accounts, db, events, places, venues, wards
 
 
 def create_app():
@@ -18,6 +18,7 @@ def create_app():
     app.register_blueprint(accounts.bp)
     app.register_blueprint(wards.bp)
     app.register_blueprint(venues.bp)
+    app.register_blueprint(events.bp)
 
     @app.get("/api/health")
     def health():
