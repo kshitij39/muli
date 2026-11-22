@@ -5,6 +5,7 @@ import Header from './components/Header.jsx'
 import Only from './components/Only.jsx'
 import Home from './pages/Home.jsx'
 import NearMe from './pages/NearMe.jsx'
+import Plan from './pages/Plan.jsx'
 import Profile from './pages/Profile.jsx'
 import SignIn from './pages/SignIn.jsx'
 import SignUp from './pages/SignUp.jsx'
@@ -30,6 +31,14 @@ function App() {
             element={
               <Only me={me} mode="civic">
                 <NearMe />
+              </Only>
+            }
+          />
+          <Route
+            path="/plan"
+            element={
+              <Only me={me} mode="ngo">
+                <Plan />
               </Only>
             }
           />

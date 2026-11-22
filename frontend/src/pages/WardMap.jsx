@@ -1,10 +1,9 @@
 import L from 'leaflet'
 import { useEffect, useMemo, useState } from 'react'
-import { GeoJSON } from 'react-leaflet'
 import { api } from '../api.js'
 import MapView from '../components/MapView.jsx'
 import PageTop from '../components/PageTop.jsx'
-import WardLabels from '../components/WardLabels.jsx'
+import WardShades from '../components/WardShades.jsx'
 import { loadOutlines } from '../outlines.js'
 import { BANDS, CATEGORIES, EVENT_CATEGORIES, numberText, roughly, usualText } from '../places.js'
 
@@ -129,20 +128,7 @@ function WardMap() {
         <div className="mt-4 grid gap-6 lg:grid-cols-5">
           <div className="lg:col-span-3">
             <MapView bounds={bounds} showWards={false} className="h-96 sm:h-[30rem] lg:sticky lg:top-4 lg:h-[38rem]">
-              {outlines && ready && (
-                <GeoJSON
-                  key={`${category}-${chosen?.code}`}
-                  data={outlines}
-                  eventHandlers={{ click: (event) => pick(event.layer.feature.properties.code) }}
-                  style={(feature) => ({
-                    color: feature.properties.code === chosen?.code ? '#1c1917' : '#57534e',
-                    weight: feature.properties.code === chosen?.code ? 3 : 1,
-                    fillColor: c.shades[byCode[feature.properties.code].band],
-                    fillOpacity: 0.65,
-                  })}
-                />
-              )}
-              {outlines && ready && <WardLabels outlines={outlines} suggested={data.suggested} />}
+              {outlines && ready && <WardShades outlines={outlines} data={data} chosen={chosen?.code} onPick={pick} />}
             </MapView>
           </div>
 
